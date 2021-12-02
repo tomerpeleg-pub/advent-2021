@@ -1,17 +1,5 @@
-import * as fs from "fs";
-import * as path from "path";
-
-const getInput = (file: string): Promise<string> =>
-  new Promise((resolve, reject) => {
-    fs.readFile(path.join(__dirname, file), "utf8", (error, data: string) => {
-      if (error) {
-        reject(error);
-        throw error;
-      }
-
-      resolve(data);
-    });
-  });
+import getInput from "../util/getInput";
+import path from "path";
 
 export const part1 = (depths: Array<number>): number => {
   let count = 0;
@@ -32,7 +20,7 @@ export const part2 = (depths: Array<number>): number => {
 };
 
 export default async () => {
-  const data: string = await getInput("./input");
+  const data: string = await getInput(path.join(__dirname, "./input"));
   const depths: Array<number> = data.split("\n").map((num) => parseInt(num));
 
   if (!depths.length) throw new Error("Invalid input, no numbers");
