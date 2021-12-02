@@ -38,7 +38,6 @@ const parseInstruction = (instruction: string): Position => {
 export const part1 = (diffs: Array<Position>): any =>
   diffs.reduce(
     (acc, diff) => {
-      //   console.log("doing", { acc, diff });
       acc = {
         x: acc.x + diff.x,
         y: acc.y + diff.y,
@@ -51,7 +50,6 @@ export const part1 = (diffs: Array<Position>): any =>
 export const part2 = (diffs: Array<Position>): any =>
   diffs.reduce(
     (acc, diff) => {
-      //   console.log("doing", { acc, diff });
       acc = {
         aim: (acc.aim || 0) + diff.y,
         x: acc.x + diff.x,
