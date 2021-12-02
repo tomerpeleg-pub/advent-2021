@@ -4,6 +4,7 @@ import path from "path";
 type Position = {
   x: number;
   y: number;
+  aim?: number;
 };
 
 const parseInstruction = (instruction: string): Position => {
@@ -47,6 +48,20 @@ export const part1 = (diffs: Array<Position>): any =>
     { x: 0, y: 0 }
   );
 
+export const part2 = (diffs: Array<Position>): any =>
+  diffs.reduce(
+    (acc, diff) => {
+      //   console.log("doing", { acc, diff });
+      acc = {
+        aim: (acc.aim || 0) + diff.y,
+        x: acc.x + diff.x,
+        y: acc.y + (acc.aim || 0) * diff.x,
+      };
+      return acc;
+    },
+    { x: 0, y: 0 }
+  );
+
 export default async () => {
   const data: string = await getInput(path.join(__dirname, "./input"));
   const diffs: Array<Position> = data.split("\n").map(parseInstruction);
@@ -56,4 +71,6 @@ export default async () => {
   console.log("DAY 2 ---------------");
   const p1Result = part1(diffs);
   console.log("P1 Result: ", p1Result, "total", p1Result.x * p1Result.y);
+  const p2Result = part2(diffs);
+  console.log("P2 Result: ", p2Result, "total", p2Result.x * p2Result.y);
 };
