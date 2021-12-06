@@ -99,12 +99,45 @@ export const part1 = (
 
   return 0;
 };
+export const part2 = (
+  boards: Array<Array<Array<number>>>,
+  draws: Array<number>
+): Number => {
+  let playBoards: any = boards.map((board) =>
+    board.map((row) => row.map((n) => ({ played: false, num: n })))
+  );
+
+  for (const draw of draws) {
+    const results: Array<Result> = playBoards.map(updateBoard(draw));
+    const unwonBoards = results.filter((result) => !result.win);
+    // console.log("round", { draw, remaining: unwonBoards.length });
+
+    if (unwonBoards.length === 0) {
+      const sum = sumUnmarked(results[0].board);
+      // console.log(
+      //   util.inspect({ sum, draw, board: results[0] }, false, null, true)
+      // );
+      return sum * draw;
+    }
+
+    playBoards = unwonBoards.map((res: Result) => res.board);
+  }
+
+  return 0;
+};
 
 export default async () => {
   const data: string = await getInput(path.join(__dirname, "./input"));
   const { boards, draws } = parseInput(data);
 
   console.log("DAY 4 ---------------");
+  console.time("p1");
   const p1Result = part1(boards, draws);
+  console.timeEnd("p1");
   console.log("P1 Result: ", p1Result);
+
+  console.time("p2");
+  const p2Result = part2(boards, draws);
+  console.timeEnd("p2");
+  console.log("P2 Result: ", p2Result);
 };
