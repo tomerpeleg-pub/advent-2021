@@ -7,6 +7,13 @@ type Cell = {
   played: boolean;
 };
 
+type Board = Array<Array<Cell>>;
+
+interface Result {
+  board: Board;
+  win: Boolean;
+}
+
 const parseInput = (input: string = "") => {
   const lines = input.split("\n");
 
@@ -35,29 +42,31 @@ const parseInput = (input: string = "") => {
   return { boards, draws };
 };
 
-const updateBoard = (draw: number) => (board: Array<Array<Cell>>) => {
-  for (let i in board) {
-    for (let j in board[i]) {
-      if (board[i][j].num === draw) {
-        board[i][j].played = true;
+const updateBoard =
+  (draw: number) =>
+  (board: Board): Result => {
+    for (let i in board) {
+      for (let j in board[i]) {
+        if (board[i][j].num === draw) {
+          board[i][j].played = true;
 
-        const winRow =
-          board[i].filter((cell) => cell.played).length === board[i].length;
-        const winCol =
-          board.filter((row) => row[j].played).length === board.length;
+          const winRow =
+            board[i].filter((cell) => cell.played).length === board[i].length;
+          const winCol =
+            board.filter((row) => row[j].played).length === board.length;
 
-        if (winRow || winCol) {
-          return { board, win: true };
-        } else {
-          return { board, win: false };
+          if (winRow || winCol) {
+            return { board, win: true };
+          } else {
+            return { board, win: false };
+          }
         }
       }
     }
-  }
-  return { board, win: false };
-};
+    return { board, win: false };
+  };
 
-const sumUnmarked = (board: Array<Array<Cell>>) =>
+const sumUnmarked = (board: Board) =>
   board.reduce(
     (sum, row) =>
       sum +
@@ -70,13 +79,13 @@ const sumUnmarked = (board: Array<Array<Cell>>) =>
 export const part1 = (
   boards: Array<Array<Array<number>>>,
   draws: Array<number>
-) => {
+): Number => {
   let playBoards: any = boards.map((board) =>
     board.map((row) => row.map((n) => ({ played: false, num: n })))
   );
 
   for (const draw of draws) {
-    const results = playBoards.map(updateBoard(draw));
+    const results: Array<Result> = playBoards.map(updateBoard(draw));
 
     for (const result of results) {
       if (result.win) {
@@ -85,7 +94,7 @@ export const part1 = (
       }
     }
 
-    playBoards = results.map((res: any) => res.board);
+    playBoards = results.map((res: Result) => res.board);
   }
 
   return 0;
