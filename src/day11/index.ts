@@ -19,8 +19,8 @@ const parseInput = (input: string): Grid =>
     .filter((row) => row.length > 0)
     .map((row, y) => row.split("").map((n, x) => ({ x, y, n: parseInt(n) })));
 
-const getNeighbours = (grid: Grid, cell: Cell) => {
-  let neighbours = [
+const getNeighbours = (grid: Grid, cell: Cell) =>
+  [
     grid?.[cell.y - 1]?.[cell.x], // N
     grid?.[cell.y + 1]?.[cell.x], // S
     grid?.[cell.y]?.[cell.x - 1], // W
@@ -30,9 +30,6 @@ const getNeighbours = (grid: Grid, cell: Cell) => {
     grid?.[cell.y + 1]?.[cell.x - 1], // SW
     grid?.[cell.y + 1]?.[cell.x + 1], // SE
   ].filter(Boolean);
-
-  return neighbours;
-};
 
 const flash = (grid: Grid, cell: Cell): Grid => {
   if (cell.flash) return grid;
@@ -126,7 +123,7 @@ const part2 = (grid: Grid) => {
     for (let y = 0; y < grid.length; y++) {
       for (let x = 0; x < grid.length; x++) {
         const cell = grid[y][x];
-        if (cell.n > 0) sync = false;
+        if (!cell.flash) sync = false;
 
         cell.flash = false;
         cell.n++;
@@ -148,7 +145,7 @@ const part2 = (grid: Grid) => {
       );
 
       printGrid(grid);
-      return i;
+      return i - 1;
     }
 
     flashes.forEach((cell) => flash(grid, cell));
@@ -156,11 +153,11 @@ const part2 = (grid: Grid) => {
     i++;
   }
 
-  console.log("\nAfter Round", 100, "total:", totalFlashes);
+  console.log("\nAfter Round", i, "total:", totalFlashes);
 
   printGrid(grid);
 
-  return totalFlashes;
+  return i;
 };
 
 export default async () => {
