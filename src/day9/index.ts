@@ -2,20 +2,26 @@ import getInput from "../util/getInput";
 import path from "path";
 import util from "util";
 
-type Grid = Array<Array<number>>;
-
-type Coord = {
+type Cell = {
   x: number;
   y: number;
+  val: number;
+  passed?: boolean;
 };
+
+type Grid = Array<Array<Cell>>;
 
 const parseInput = (input: string): Grid =>
   input
     .split("\n")
-    .map((row) => row.split("").map((char) => parseInt(char)))
+    .map((row, y) =>
+      row
+        .split("")
+        .map((char, x) => ({ x, y, val: parseInt(char), passed: false }))
+    )
     .filter((row) => row.length > 0);
 
-const getNeighbours = (grid: Grid, coord: Coord) => {
+const getNeighbours = (grid: Grid, coord: Cell) => {
   let neighbours = [];
 
   if (coord.y > 0) neighbours.push(grid[coord.y - 1][coord.x]);
@@ -26,27 +32,63 @@ const getNeighbours = (grid: Grid, coord: Coord) => {
   return neighbours;
 };
 
-const part1 = (grid: Grid) => {
+const getLowPoints = (grid: Grid): Array<Cell> => {
   const lowPoints = [];
 
   for (let yi = 0; yi < grid.length; yi++) {
     const row = grid[yi];
     for (let xi = 0; xi < row.length; xi++) {
       const cell = row[xi];
-      const neighbours = getNeighbours(grid, { x: xi, y: yi });
-      if (neighbours.filter((neighbour) => cell >= neighbour).length === 0)
+      const neighbours = getNeighbours(grid, cell);
+
+      if (
+        neighbours.filter((neighbour) => cell.val >= neighbour.val).length === 0
+      )
         lowPoints.push(cell);
     }
   }
 
-  return lowPoints.reduce((sum, cur) => sum + cur + 1, 0);
+  return lowPoints;
+};
+
+const part1 = (grid: Grid) => {
+  const lowPoints = getLowPoints(grid);
+
+  return lowPoints.reduce((sum, cell) => sum + cell.val + 1, 0);
+};
+
+const getBasin = (grid: Grid, cell: Cell): Array<Cell> => {
+  if (cell.passed) return [];
+  const neighbours: Array<Cell> = getNeighbours(grid, cell).filter(
+    (c) => c.val !== 9 && c.passed !== true
+  );
+  cell.passed = true;
+  let basin: Array<Cell> = [cell];
+
+  for (let neighbour of neighbours) {
+    if (neighbour.passed) continue;
+    const neighbourBasin = getBasin(grid, neighbour);
+    basin = basin.concat(neighbourBasin);
+  }
+  return basin;
+};
+
+const part2 = (grid: Grid) => {
+  const lowPoints = getLowPoints(grid);
+  const basins = lowPoints.map((cell) => getBasin(grid, cell));
+
+  return basins
+    .map((basin) => basin.length)
+    .sort((a, b) => (a > b ? 1 : -1))
+    .slice(-3)
+    .reduce((sum, val) => sum * val, 1);
 };
 
 export default async () => {
   const data: string = await getInput(path.join(__dirname, "./input"));
   const grid = parseInput(data);
 
-  console.log("DAY 6 ---------------");
+  console.log("DAY 9 ---------------");
   console.log("input: ", grid.length);
 
   console.log("P1 ----------");
@@ -54,4 +96,10 @@ export default async () => {
   const p1Result = part1(grid);
   console.timeEnd("p1");
   console.log("P1 Result: ", p1Result);
+
+  console.log("P2 ----------");
+  console.time("p2");
+  const p2Result = part2(grid);
+  console.timeEnd("p2");
+  console.log("P2 Result: ", p2Result);
 };
