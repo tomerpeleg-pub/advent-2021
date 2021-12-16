@@ -12,7 +12,7 @@ const checkLine = (line: string) => {
     "[": "]",
     "<": ">",
   };
-  const ends: Record<string, number> = {
+  const scores: Record<string, number> = {
     ")": 3,
     "]": 57,
     "}": 1197,
@@ -23,17 +23,8 @@ const checkLine = (line: string) => {
 
   for (let char of line) {
     if (starts.hasOwnProperty(char)) running.push(starts[char]);
-    else if (ends.hasOwnProperty(char)) {
-      if (char === running[running.length - 1]) {
-        running.pop();
-      } else {
-        // console.log(
-        //   `Expected ${running[running.length - 1]} but got ${char}. Score: ${
-        //     ends[char]
-        //   }`
-        // );
-        return ends[char];
-      }
+    else if (scores.hasOwnProperty(char)) {
+      if (char !== running.pop()) return scores[char];
     }
   }
 
@@ -47,7 +38,7 @@ const completeLine = (line: string) => {
     "[": "]",
     "<": ">",
   };
-  const ends: Record<string, number> = {
+  const scores: Record<string, number> = {
     ")": 1,
     "]": 2,
     "}": 3,
@@ -58,20 +49,14 @@ const completeLine = (line: string) => {
 
   for (let char of line) {
     if (starts.hasOwnProperty(char)) running.push(starts[char]);
-    else if (ends.hasOwnProperty(char)) {
-      if (char === running[running.length - 1]) {
-        running.pop();
-      } else {
-        return 0;
-      }
-    }
+    else if (scores.hasOwnProperty(char) && char !== running.pop()) return 0;
   }
 
   if (running.length === 0) return 0;
 
   return running
     .reverse()
-    .reduce((sum: number, char: string) => sum * 5 + ends[char], 0);
+    .reduce((sum: number, char: string) => sum * 5 + scores[char], 0);
 };
 
 const part1 = (lines: Array<string>) =>
