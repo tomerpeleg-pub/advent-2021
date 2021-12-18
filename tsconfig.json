@@ -6,8 +6,7 @@
     "rootDir": "./src",
     "strict": true,
     "moduleResolution": "node",
-    "esModuleInterop": true,
-    "types": ["node"]
+    "esModuleInterop": true
   },
   "exclude": ["./node_modules"]
 }
