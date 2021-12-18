@@ -46,19 +46,18 @@ const bright = (str: string) => `\x1b[1m${str}\x1b[0m`;
 const dim = (str: string) => `\x1b[2m${str}\x1b[0m`;
 
 const renderDots = (dots: Array<Coord>) => {
-  const maxX = dots.reduce((max, dot) => (dot.x > max ? dot.x : max), 0);
-  const maxY = dots.reduce((max, dot) => (dot.y > max ? dot.y : max), 0);
-  let grid: Array<Array<boolean>> = [...Array(maxY + 1)].map((_) => [
-    ...Array(maxX + 1),
-  ]);
+  let grid: Array<Array<boolean>> = [];
 
   for (let dot of dots) {
+    if (!grid[dot.y]) grid[dot.y] = [];
     grid[dot.y][dot.x] = true;
   }
 
   console.log(
-    grid
-      .map((row) => row.map((cell) => (cell ? bright("█") : dim(" "))).join(""))
+    [...grid]
+      .map((row) =>
+        [...row].map((cell) => (cell ? bright("█") : dim(" "))).join("")
+      )
       .join("\n")
   );
 };
