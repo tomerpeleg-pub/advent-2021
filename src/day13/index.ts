@@ -42,6 +42,9 @@ const parseInput = (input: string): Input => {
   return { dots, folds };
 };
 
+const bright = (str: string) => `\x1b[1m${str}\x1b[0m`;
+const dim = (str: string) => `\x1b[2m${str}\x1b[0m`;
+
 const renderDots = (dots: Array<Coord>) => {
   const maxX = dots.reduce((max, dot) => (dot.x > max ? dot.x : max), 0);
   const maxY = dots.reduce((max, dot) => (dot.y > max ? dot.y : max), 0);
@@ -54,7 +57,9 @@ const renderDots = (dots: Array<Coord>) => {
   }
 
   console.log(
-    grid.map((row) => row.map((cell) => (cell ? "#" : ".")).join("")).join("\n")
+    grid
+      .map((row) => row.map((cell) => (cell ? bright("█") : dim(" "))).join(""))
+      .join("\n")
   );
 };
 
