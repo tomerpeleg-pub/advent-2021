@@ -4,5 +4,12 @@
 
 ```
 yarn install
-yarn start
+```
+
+## Run a day
+
+E.g.:
+
+```
+yarn day 12
 ```
