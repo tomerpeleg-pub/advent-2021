@@ -63,7 +63,7 @@ export default async () => {
   const data: string = await getInput(path.join(__dirname, "./input"));
   const positions = parseInput(data);
 
-  console.log("DAY 6 ---------------");
+  console.log("DAY 7 ---------------");
   console.log("input: ", positions.length);
 
   console.log("P1 ----------");
