@@ -10,6 +10,7 @@ import day9 from "./day9";
 import day10 from "./day10";
 import day11 from "./day11";
 import day12 from "./day12";
+import day13 from "./day13";
 
 // day1();
 // day2();
@@ -22,4 +23,5 @@ import day12 from "./day12";
 // day9();
 // day10();
 // day11();
-day12();
+// day12();
+day13();
