@@ -8,97 +8,145 @@ const parseInput = (input: string) =>
     .split("\n")
     .map((line) => JSON.parse(line));
 
-const add = (left: string, right: string) => `[${left},${right}]`;
+type Token = "," | "[" | "]" | number;
 
-const explode = (val: string) => {
-  let depth = 0;
-  let consuming = false;
-  let token = {};
+const scan = (line: string): Token[] => {
+  let i = 0;
+  let num = "";
+  const tokens: Token[] = [];
 
-  for (let i = 0; i < val.length; i++) {
-    const char = val[i];
+  while (i < line.length) {
+    const char = line[i];
 
-    if (char === ",") continue;
-
-    if (char === "[") {
-      depth++;
-      continue;
+    if (/[0-9]/.test(char)) {
+      num += char;
+    } else if (num) {
+      tokens.push(parseInt(num));
+      num = "";
     }
 
-    if (char === "]") {
-      depth--;
-      continue;
+    if (char === "," || char === "[" || char === "]") {
+      tokens.push(char);
     }
 
-    if (/[0-9]/.test(char) && depth >= 5) {
-      // explode
-      const closing = val.indexOf("]", i);
-
-      const left = val.substring(0, i - 1);
-      const right = val.substring(closing + 1);
-
-      const leftNum = val.substring(i).match(/[0-9]+/) || "";
-      const rightNum = val.substring(i).match(/[0-9]+,([0-9]+)/);
-
-      const lastNum = left.match(/([\[\],0-9]*)([0-9]+)([\[\],]*)/);
-      const nextNum = right.match(/[0-9]+/);
-
-      let result = left;
-
-      if (lastNum) {
-        result =
-          lastNum[1] +
-          String(parseInt(lastNum[2]) + parseInt(leftNum[0])) +
-          lastNum[3];
-      } else {
-        // no left number
-        result += "0";
-      }
-
-      result += ",";
-
-      if (nextNum) {
-        result += 
-      } else {
-        result += "0";
-      }
-    }
+    i++;
   }
+
+  return tokens;
 };
 
-const split = (val: number) => {
-  if (Array.isArray(val)) {
+const explode = (val: Token[]) => {
+  let depth = 0;
+  let found;
+
+  let right;
+  let prev;
+  let next;
+
+  let result = Array.from(val);
+
+  for (let i = 0; i < val.length; i++) {
+    const token = val[i];
+
+    switch (token) {
+      case "[":
+        depth++;
+        continue;
+      case "]":
+        depth--;
+        continue;
+      case ",":
+        continue;
+
+      default:
+        if (found && typeof right === "number") {
+          next = { i, token };
+          result.splice(i - 4, 1, right + token);
+          // console.log("next", { i, right, token, result: result.join("") });
+          return result;
+        } else {
+          if (depth >= 5 && typeof val?.[i + 2] === "number") {
+            found = true;
+
+            if (prev) {
+              result.splice(prev.i, 1, prev.token + token);
+            }
+
+            right = val[i + 2];
+            // console.log("found", { token, result: result.join("") });
+            result.splice(i - 1, 5, 0);
+            // console.log("after", { token, result: result.join("") });
+            i = i + 3;
+          } else if (token > 9) {
+            result.splice(
+              i,
+              1,
+              "[",
+              Math.floor(token / 2),
+              ",",
+              Math.ceil(token / 2),
+              "]"
+            );
+            return result;
+          } else {
+            prev = { i, token };
+          }
+        }
+        break;
+    }
   }
+
   return val;
 };
 
-const doSnailMath = (left: string, right: string) => {
+const add = (left: Token[], right: Token[]): Token[] => [
+  "[",
+  ...left,
+  ",",
+  ...right,
+  "]",
+];
+
+const doSnailMath = (left: Token[], right: Token[]) => {
   const afterAdd = add(left, right);
+  console.log("after add", afterAdd.join(""));
 
-  const afterExplode = explode(afterAdd);
+  let finished = false;
+  let result = afterAdd;
+  while (!finished) {
+    let newResult = explode(result);
+    finished = newResult.join("") === result.join("");
+    result = newResult;
+    console.log("after exp", result.join(""));
+  }
 
-  return afterAdd;
+  return result;
 };
 
 const part1 = (lines: Array<any>) => {
-  const [first, ...rest] = lines;
+  // const line = scan(lines[0]);
+  // const result = explode(line);
+  const [first, ...rest] = lines.map(scan);
   const result = rest.reduce(doSnailMath, first);
-  console.log("result", util.inspect(result, false, 1000, true));
+  console.log("result", result.join(""));
+  return result;
 };
 
 export default async () => {
   const data: string = await getInput(path.join(__dirname, "./example"));
   const lines = parseInput(data);
 
-  console.log("DAY 17 ---------------");
+  console.log("DAY 18 ---------------");
 
-  console.log(explode(`[7,[6,[5,[4,[3,2]]]]]`));
+  // console.log(
+  //   explode(add(scan("[[[[4,3],4],4],[7,[[8,4],9]]]"), scan("[1,1]"))).join("")
+  // );
 
-  // console.log("P1 ----------");
-  // console.time("p1");
-  // const p1Result = part1(data.split("\n"));
-  // console.timeEnd("p1");
-  // console.log("P1 Result: ", p1Result);
+  console.log("P1 ----------");
+  console.time("p1");
+  const p1Result = part1(data.split("\n").map((line) => line.trim()));
+  console.timeEnd("p1");
+  console.log("P1 Result: ", p1Result);
 
   // console.log("p2 ----------");
   // console.time("p2");
