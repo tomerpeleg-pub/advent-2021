@@ -101,14 +101,12 @@ const doPairInserts = (
   for (let insert of insertions) {
     const pair = insert.left + insert.right;
     if (pairs.hasOwnProperty(pair) && pairs[pair] > 0) {
-      const prevPair = insert.left + insert.right;
       const newPairLeft = insert.left + insert.insert;
       const newPairRight = insert.insert + insert.right;
 
-      newPairs[newPairLeft] = (newPairs[newPairLeft] || 0) + pairs[prevPair];
-      newPairs[newPairRight] = (newPairs[newPairRight] || 0) + pairs[prevPair];
-      newChars[insert.insert] =
-        (newChars[insert.insert] || 0) + pairs[prevPair];
+      newPairs[newPairLeft] = (newPairs[newPairLeft] || 0) + pairs[pair];
+      newPairs[newPairRight] = (newPairs[newPairRight] || 0) + pairs[pair];
+      newChars[insert.insert] = (newChars[insert.insert] || 0) + pairs[pair];
     }
   }
 
