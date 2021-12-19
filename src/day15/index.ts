@@ -44,9 +44,9 @@ const getNeighbours = (grid: Grid, cell: Point) => {
 
 const getCost = (grid: Grid, startPoint: Point, endPoint: Point) => {
   const queue: Map<Point, number> = new Map();
-  const finalMap: Map<Point, number> = new Map();
+  const completed: Map<Point, number> = new Map();
   queue.set(startPoint, 0);
-  finalMap.set(startPoint, 0);
+  completed.set(startPoint, 0);
 
   while (queue.size > 0) {
     const nextPoint = getMin(queue);
@@ -54,18 +54,18 @@ const getCost = (grid: Grid, startPoint: Point, endPoint: Point) => {
     const neighbours = getNeighbours(grid, nextPoint);
 
     for (let neighbour of neighbours) {
-      if (!finalMap.get(neighbour)) {
-        const cost = (finalMap.get(nextPoint) || 0) + neighbour.cost;
+      if (!completed.get(neighbour)) {
+        const cost = (completed.get(nextPoint) || 0) + neighbour.cost;
 
         if (neighbour === endPoint) return cost;
 
-        finalMap.set(neighbour, cost);
+        completed.set(neighbour, cost);
         queue.set(neighbour, cost);
       }
     }
   }
 
-  return finalMap.get(endPoint);
+  return completed.get(endPoint);
 };
 
 const part1 = (grid: Grid) => {
