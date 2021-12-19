@@ -66,8 +66,8 @@ const part1 = (target: Target) => {
   let maxInitial;
   let curMaxY = -Infinity;
 
-  for (let x = 1; x < target.x2; x++) {
-    for (let y = 1; y < -target.y1; y++) {
+  for (let x = 1; x <= target.x2; x++) {
+    for (let y = target.y1; y <= -target.y1; y++) {
       const { hit, maxY } = tryLaunch({ x, y }, target);
       if (hit && maxY > curMaxY) {
         maxInitial = { x, y };
@@ -90,8 +90,6 @@ const part2 = (target: Target) => {
     }
   }
 
-  // console.log(JSON.stringify(hitInitials));
-  // console.log(hitInitials.map((hit) => `${hit.x},${hit.y}`).join("\t"));
   return hitInitials.length;
 };
 
