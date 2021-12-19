@@ -7,11 +7,22 @@ const dim = (str: string) => `\x1b[2m${str}\x1b[0m`;
 
 let totalVersions = 0;
 
+enum OP {
+  SUM = 0,
+  PRODUCT = 1,
+  MINIMUM = 2,
+  MAXIMUM = 3,
+  LITERAL = 4,
+  GREATER_THAN = 5,
+  LESS_THAN = 6,
+  EQUAL = 7,
+}
+
 type Packet = {
-  typeID: number;
+  typeID: OP;
   version: number;
   subPackets?: Array<Packet>;
-  payload?: number;
+  payload: number;
 };
 
 type Result = [Packet, string];
@@ -22,14 +33,14 @@ const parseHex = (input: string) =>
     .map((n) => parseInt(n, 16).toString(2).padStart(4, "0"))
     .join("");
 
-const parseInput = (input: string) => parseHex(input);
+const parseInput = (input: string) => parseHex(input.trim());
 
 const toDec = (input: string) => parseInt("0" + input, 2);
 
 const parseLiteralPacket = (
   input: string,
   version: number,
-  typeID: number
+  typeID: OP
 ): Result => {
   let start = 0;
   let finished = false;
@@ -53,10 +64,35 @@ const parseLiteralPacket = (
   ];
 };
 
-const parseOperatorByLength = (
+const evalOperator = (typeId: OP, subPackets: Array<Packet>): number => {
+  switch (typeId) {
+    case OP.SUM:
+      return subPackets.reduce((sum, cur) => sum + cur.payload, 0);
+    case OP.PRODUCT:
+      return subPackets.reduce((product, cur) => product * cur.payload, 1);
+    case OP.MINIMUM:
+      return subPackets.reduce(
+        (min, cur) => (cur.payload < min ? cur.payload : min),
+        Infinity
+      );
+    case OP.MAXIMUM:
+      return subPackets.reduce(
+        (max, cur) => (cur.payload > max ? cur.payload : max),
+        -Infinity
+      );
+    case OP.GREATER_THAN:
+      return subPackets?.[0].payload > subPackets?.[1].payload ? 1 : 0;
+    case OP.LESS_THAN:
+      return subPackets?.[0].payload < subPackets?.[1].payload ? 1 : 0;
+    case OP.EQUAL:
+      return subPackets?.[0].payload === subPackets?.[1].payload ? 1 : 0;
+  }
+};
+
+const parseOperatorsByLength = (
   input: string,
   version: number,
-  typeID: number
+  typeID: OP
 ): Result => {
   const length = toDec(input.substr(0, 15));
   let subPacketBits = input.substr(15, length);
@@ -70,15 +106,16 @@ const parseOperatorByLength = (
     subPackets.push(subPacket);
   }
 
+  const payload = evalOperator(typeID, subPackets);
   const remainder = input.substr(15 + length);
 
-  return [{ version, typeID, subPackets }, remainder];
+  return [{ version, typeID, subPackets, payload }, remainder];
 };
 
-const parseOperatorByNumSubPackets = (
+const parseOperatorsByNumSubPackets = (
   input: string,
   version: number,
-  typeID: number
+  typeID: OP
 ): Result => {
   const numSubpackets = toDec(input.substr(0, 11));
   let subPacketBits = input.substr(11);
@@ -90,7 +127,9 @@ const parseOperatorByNumSubPackets = (
     subPacketBits = remainder || "";
   }
 
-  return [{ version, typeID, subPackets }, subPacketBits];
+  const payload = evalOperator(typeID, subPackets);
+
+  return [{ version, typeID, subPackets, payload }, subPacketBits];
 };
 
 const parsePacket = (input: string): Result => {
@@ -99,14 +138,15 @@ const parsePacket = (input: string): Result => {
 
   totalVersions += version;
 
-  if (typeID === 4) return parseLiteralPacket(input.substr(6), version, typeID);
+  if (typeID === OP.LITERAL)
+    return parseLiteralPacket(input.substr(6), version, typeID);
 
   const isLength = input[6] === "0";
 
   if (isLength) {
-    return parseOperatorByLength(input.substr(7), version, typeID);
+    return parseOperatorsByLength(input.substr(7), version, typeID);
   } else {
-    return parseOperatorByNumSubPackets(input.substr(7), version, typeID);
+    return parseOperatorsByNumSubPackets(input.substr(7), version, typeID);
   }
 };
 
@@ -115,16 +155,28 @@ const part1 = (input: string) => {
   return totalVersions;
 };
 
+const part2 = (input: string) => {
+  const [packet, remainder] = parsePacket(input);
+  // console.log("result", util.inspect(packet, false, 100, true));
+  return packet.payload;
+};
+
 export default async () => {
   const data: string = await getInput(path.join(__dirname, "./input"));
   const input = parseInput(data);
 
   console.log("DAY 16 ---------------");
-  console.log("input", data);
+  // console.log("input", data);
 
   console.log("P1 ----------");
   console.time("p1");
   const p1Result = part1(input);
   console.timeEnd("p1");
   console.log("P1 Result: ", p1Result);
+
+  console.log("p2 ----------");
+  console.time("p2");
+  const p2Result = part2(input);
+  console.timeEnd("p2");
+  console.log("p2 Result: ", p2Result);
 };
