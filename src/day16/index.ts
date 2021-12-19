@@ -75,6 +75,9 @@ const evalOperator = (typeId: OP, subPackets: Array<Packet>): number => {
         (min, cur) => (cur.payload < min ? cur.payload : min),
         Infinity
       );
+    case OP.LITERAL:
+      // should never happen
+      return 0;
     case OP.MAXIMUM:
       return subPackets.reduce(
         (max, cur) => (cur.payload > max ? cur.payload : max),
