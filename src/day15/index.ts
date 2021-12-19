@@ -42,15 +42,57 @@ const getNeighbours = (grid: Grid, cell: Point) => {
   return cell.neighbours;
 };
 
+class SortedQueue {
+  private values: Map<any, number>;
+  private queue: Array<any>;
+
+  constructor() {
+    this.values = new Map();
+    this.queue = [];
+  }
+
+  add(key: any, val: number) {
+    if (this.values.has(key)) {
+      return key;
+    }
+
+    this.values.set(key, val);
+
+    if (!this.queue.length) {
+      this.queue.push(key);
+      return key;
+    }
+
+    for (let i = 0; i < this.queue.length; i++) {
+      if ((this.values.get(this.queue[i]) || -1) > val) {
+        this.queue.splice(i, 0, key);
+        return key;
+      }
+    }
+
+    this.queue.push(key);
+    return key;
+  }
+
+  pop() {
+    const smallest = this.queue.shift();
+    this.values.delete(smallest);
+    return smallest;
+  }
+
+  get size() {
+    return this.queue.length;
+  }
+}
+
 const getCost = (grid: Grid, startPoint: Point, endPoint: Point) => {
-  const queue: Map<Point, number> = new Map();
+  const queue = new SortedQueue();
   const completed: Map<Point, number> = new Map();
-  queue.set(startPoint, 0);
+  queue.add(startPoint, 0);
   completed.set(startPoint, 0);
 
   while (queue.size > 0) {
-    const nextPoint = getMin(queue);
-    queue.delete(nextPoint);
+    const nextPoint = queue.pop();
     const neighbours = getNeighbours(grid, nextPoint);
 
     for (let neighbour of neighbours) {
@@ -60,7 +102,7 @@ const getCost = (grid: Grid, startPoint: Point, endPoint: Point) => {
         if (neighbour === endPoint) return cost;
 
         completed.set(neighbour, cost);
-        queue.set(neighbour, cost);
+        queue.add(neighbour, cost);
       }
     }
   }
