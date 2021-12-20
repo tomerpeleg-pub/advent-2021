@@ -35,7 +35,7 @@ const scan = (line: string): Token[] => {
   return tokens;
 };
 
-const explode = (val: Token[]) => {
+const explode = (val: Token[]): Token[] => {
   let depth = 0;
   let found;
 
@@ -45,8 +45,14 @@ const explode = (val: Token[]) => {
 
   let result = Array.from(val);
 
+  let minI = -1;
+
   for (let i = 0; i < val.length; i++) {
+    if (i <= minI) continue;
     const token = val[i];
+    if (found) {
+      console.log("after found", i, token);
+    }
 
     switch (token) {
       case "[":
@@ -61,7 +67,10 @@ const explode = (val: Token[]) => {
       default:
         if (found && typeof right === "number") {
           next = { i, token };
+          console.log("before splice", val[i], val[i - 1]);
+          console.log("splicing right", i, token, right, result.join(""));
           result.splice(i - 4, 1, right + token);
+          console.log(" spliced right", i, token, right, result.join(""));
           // console.log("next", { i, right, token, result: result.join("") });
           return result;
         } else {
@@ -74,21 +83,27 @@ const explode = (val: Token[]) => {
 
             right = val[i + 2];
             // console.log("found", { token, result: result.join("") });
+            console.log(
+              "doing explode",
+              i,
+              val.length,
+              token,
+              right,
+              result.join("")
+            );
             result.splice(i - 1, 5, 0);
             // console.log("after", { token, result: result.join("") });
-            i = i + 3;
-          } else if (token > 9) {
-            result.splice(
+            minI = i + 2;
+            console.log(
+              " done explode",
               i,
-              1,
-              "[",
-              Math.floor(token / 2),
-              ",",
-              Math.ceil(token / 2),
-              "]"
+              minI,
+              val.length,
+              token,
+              right,
+              result.join("")
             );
-            return result;
-          } else {
+          } else if (!found) {
             prev = { i, token };
           }
         }
@@ -96,7 +111,29 @@ const explode = (val: Token[]) => {
     }
   }
 
-  return val;
+  return result;
+};
+
+const split = (val: Token[]): Token[] => {
+  const result = [...val];
+  console.log("before split", result.join(""));
+  // val.reduce((arr: Token[], token: Token, i: number) => {
+  for (let i = 0; i < result.length; i++) {
+    const token = result[i];
+    if (typeof token === "number" && token > 9) {
+      console.log("doing split", i, token);
+      result.splice(
+        i,
+        1,
+        "[",
+        Math.floor(token / 2),
+        ",",
+        Math.ceil(token / 2),
+        "]"
+      );
+    }
+  }
+  return result;
 };
 
 const add = (left: Token[], right: Token[]): Token[] => [
@@ -114,7 +151,7 @@ const doSnailMath = (left: Token[], right: Token[]) => {
   let finished = false;
   let result = afterAdd;
   while (!finished) {
-    let newResult = explode(result);
+    let newResult = split(explode(result));
     finished = newResult.join("") === result.join("");
     result = newResult;
     console.log("after exp", result.join(""));
