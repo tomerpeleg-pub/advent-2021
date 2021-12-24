@@ -54,26 +54,36 @@ type State = {
   positions: number[];
   scores: number[];
   round: number;
+  universes: number;
   win: number;
 };
 
-const playRound = ({ player, positions, scores, round }: State) => {
-  const diceRolls = [1, 2, 3];
+const playRound = ({ player, positions, scores, round, universes }: State) => {
+  const diceRolls = [
+    [3, 1],
+    [4, 3],
+    [5, 6],
+    [6, 7],
+    [7, 6],
+    [8, 3],
+    [9, 1],
+  ];
   const results: State[] = [];
 
-  for (const roll of diceRolls) {
+  for (const [roll, times] of diceRolls) {
     const result = {
       player,
       positions: Array.from(positions),
       scores: Array.from(scores),
       round,
+      universes,
       win: -1,
     };
 
     result.positions[player] = (result.positions[player] + roll) % 10;
     result.scores[player] += result.positions[player] + 1;
-    result.win = result.scores[player] >= 21 ? player : -1;
-
+    result.universes *= times;
+    result.win = result.scores[player] >= 21 ? result.universes : -1;
     results.push(result);
   }
 
@@ -86,14 +96,15 @@ const part2 = (startingPositions: number[]) => {
     positions: [...startingPositions.map((start) => start - 1)],
     scores: [0, 0],
     round: 1,
+    universes: 1,
     win: -1,
   };
-
-  console.log("starting", startingState);
 
   let states: State[] = [startingState];
   let winners = [0, 0];
   let round = 1;
+
+  let universes = states.length;
 
   while (states.length > 0) {
     let roundStates = [];
@@ -101,9 +112,11 @@ const part2 = (startingPositions: number[]) => {
     for (const state of states) {
       const newStates = playRound(state);
 
+      universes += newStates.length;
+
       for (const newState of newStates) {
-        if (newState.win >= 0) {
-          winners[newState.win]++;
+        if (newState.win > 0) {
+          winners[newState.player] += newState.win;
         } else {
           newState.player = newState.player === 1 ? 0 : 1;
           newState.round++;
@@ -116,12 +129,11 @@ const part2 = (startingPositions: number[]) => {
     states = roundStates;
   }
 
-  console.log("done", round, winners);
   return winners;
 };
 
 export default async () => {
-  const data: string = await getInput(path.join(__dirname, "./example"));
+  const data: string = await getInput(path.join(__dirname, "./input"));
   const startingPositions = parseInput(data);
 
   console.log("DAY 21 ---------------");
