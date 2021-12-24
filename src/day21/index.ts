@@ -144,6 +144,7 @@ export default async () => {
   console.timeEnd("p1");
   console.log("P1 Result: ", p1Result);
 
+  // V. slow
   console.log("p2 ----------");
   console.time("p2");
   const p2Result = part2(startingPositions);
