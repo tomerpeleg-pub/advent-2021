@@ -35,8 +35,6 @@ const part1 = (startingPositions: number[]) => {
 
   while (!winner) {
     for (let i = 0; i < positions.length; i++) {
-      const position = positions[i];
-
       const diceRolls = roll(dice);
       positions[i] = (positions[i] + sum(diceRolls)) % 10;
       dice = diceRolls[diceRolls.length - 1] + 1;
@@ -51,8 +49,79 @@ const part1 = (startingPositions: number[]) => {
   }
 };
 
+type State = {
+  player: number;
+  positions: number[];
+  scores: number[];
+  round: number;
+  win: number;
+};
+
+const playRound = ({ player, positions, scores, round }: State) => {
+  const diceRolls = [1, 2, 3];
+  const results: State[] = [];
+
+  for (const roll of diceRolls) {
+    const result = {
+      player,
+      positions: Array.from(positions),
+      scores: Array.from(scores),
+      round,
+      win: -1,
+    };
+
+    result.positions[player] = (result.positions[player] + roll) % 10;
+    result.scores[player] += result.positions[player] + 1;
+    result.win = result.scores[player] >= 21 ? player : -1;
+
+    results.push(result);
+  }
+
+  return results;
+};
+
+const part2 = (startingPositions: number[]) => {
+  const startingState: State = {
+    player: 0,
+    positions: [...startingPositions.map((start) => start - 1)],
+    scores: [0, 0],
+    round: 1,
+    win: -1,
+  };
+
+  console.log("starting", startingState);
+
+  let states: State[] = [startingState];
+  let winners = [0, 0];
+  let round = 1;
+
+  while (states.length > 0) {
+    let roundStates = [];
+
+    for (const state of states) {
+      const newStates = playRound(state);
+
+      for (const newState of newStates) {
+        if (newState.win >= 0) {
+          winners[newState.win]++;
+        } else {
+          newState.player = newState.player === 1 ? 0 : 1;
+          newState.round++;
+          roundStates.push(newState);
+        }
+      }
+    }
+
+    round++;
+    states = roundStates;
+  }
+
+  console.log("done", round, winners);
+  return winners;
+};
+
 export default async () => {
-  const data: string = await getInput(path.join(__dirname, "./input"));
+  const data: string = await getInput(path.join(__dirname, "./example"));
   const startingPositions = parseInput(data);
 
   console.log("DAY 21 ---------------");
@@ -62,4 +131,10 @@ export default async () => {
   const p1Result = part1(startingPositions);
   console.timeEnd("p1");
   console.log("P1 Result: ", p1Result);
+
+  console.log("p2 ----------");
+  console.time("p2");
+  const p2Result = part2(startingPositions);
+  console.timeEnd("p2");
+  console.log("p2 Result: ", p2Result);
 };
