@@ -1,7 +1,9 @@
 import fs from "fs";
 
 const dayReg = /day(\d+)/;
-const days = fs
+
+const days: Record<string, Function> = {};
+const fns = fs
   .readdirSync(__dirname)
   .filter((path) => path.startsWith("day"))
   .sort((a, b) =>
@@ -10,7 +12,11 @@ const days = fs
       ? 1
       : -1
   )
-  .map((path) => require("./" + path).default);
+  .map((path) => {
+    const fn = require("./" + path).default;
+    days[path] = fn;
+    return fn;
+  });
 
 if (!process.argv[2]) {
   throw new Error("You need to pass a day");
@@ -19,7 +25,7 @@ if (!process.argv[2]) {
 let day;
 try {
   console.log("Doing day", process.argv[2]);
-  day = days[parseInt(process.argv[2]) - 1];
+  day = days["day" + process.argv[2]];
 } catch (e) {
   console.error("Invalid day. Requires num from", 1, "to", days.length);
   process.exit();
